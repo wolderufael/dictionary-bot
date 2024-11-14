@@ -113,14 +113,14 @@ import os
 import subprocess
 
 # Clone the repository
-git.Repo.clone_from('https://github.com/ultralytics/yolov5.git', 'yolov5')
+# git.Repo.clone_from('https://github.com/ultralytics/yolov5.git', 'yolov5')
 
 
 # Change the working directory to yolov5
-os.chdir('yolov5')
+# os.chdir('yolov5')
 
 # Install dependencies from requirements.txt
-subprocess.run(['pip', 'install', '-r', 'requirements.txt'])
+# subprocess.run(['pip', 'install', '-r', 'requirements.txt'])
 
 
 ##########################################################################
@@ -185,7 +185,9 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     img = cv2.imread(photo_path)
 
     # Load pre-trained YOLOv5 model
-    model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
+    model_path = 'yolov5s.pt'
+    # model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
+    model = torch.hub.load('ultralytics/yolov5', 'custom', path=model_path)
     results = model(img)
 
     # Render detections on image
@@ -205,12 +207,12 @@ app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, get_word_info))
 app.add_handler(MessageHandler(filters.PHOTO, handle_photo))  # Photo handler
 
 # # Run the webhook for the bot
-# app.run_webhook(
-#     listen="0.0.0.0",
-#     port=int(os.environ.get('PORT', 5001)),
-#     url_path=telegram_bot_token,
-#     webhook_url=f'https://dictionary-bot-pbld.onrender.com/{telegram_bot_token}'
-# )
+app.run_webhook(
+    listen="0.0.0.0",
+    port=int(os.environ.get('PORT', 5001)),
+    url_path=telegram_bot_token,
+    webhook_url=f'https://dictionary-bot-pbld.onrender.com/{telegram_bot_token}'
+)
 
-# Start the bot
-app.run_polling()
+# # Start the bot
+# app.run_polling()
