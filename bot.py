@@ -95,8 +95,14 @@ from telegram.ext import (
     Application, CommandHandler, MessageHandler, ContextTypes, filters
 )
 from diction import get_info
+from dotenv import load_dotenv
 
-telegram_bot_token = '7676463052:AAHbFgkFUDR5-Js7MfXsxlx39TIzIlvI430'
+
+# Load environment variables once
+load_dotenv('.env')
+telegram_bot_token = os.getenv('TOKEN')
+
+
 
 # Initialize the Application
 app = Application.builder().token(telegram_bot_token).build()
