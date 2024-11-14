@@ -1,9 +1,9 @@
-Flask
-gunicorn
-itsdangerous
-Jinja2
-python-telegram-bot
-requests
+Flask==3.1.0
+gunicorn==23.0.0
+itsdangerous==2.2.0
+Jinja2==3.1.4
+python-telegram-bot==21.7
+requests==2.32.3
 # telegram==0.0.1
 # virtualenv==20.8.0
 # virtualenvwrapper-win==1.2.6
