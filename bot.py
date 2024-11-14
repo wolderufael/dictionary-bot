@@ -90,19 +90,40 @@
 
 
 import os
+import tempfile
 from telegram import Update
 from telegram.ext import (
     Application, CommandHandler, MessageHandler, ContextTypes, filters
 )
 from diction import get_info
 from dotenv import load_dotenv
+import torch
+import cv2
+import numpy as np
+import os
 
 
 # Load environment variables once
 load_dotenv('.env')
-telegram_bot_token = os.getenv('TOKEN')
+telegram_bot_token = os.getenv('TOKEN2')
+
+##########Clone repo and install dependecies###################
+import git
+import os
+import subprocess
+
+# Clone the repository
+git.Repo.clone_from('https://github.com/ultralytics/yolov5.git', 'yolov5')
 
 
+# Change the working directory to yolov5
+os.chdir('yolov5')
+
+# Install dependencies from requirements.txt
+subprocess.run(['pip', 'install', '-r', 'requirements.txt'])
+
+
+##########################################################################
 
 # Initialize the Application
 app = Application.builder().token(telegram_bot_token).build()
@@ -155,14 +176,41 @@ async def get_word_info(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     message = f"Word: {word}\n{meanings}"
     await update.message.reply_text(message)
 
+async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    # Download the photo
+    photo_file = await update.message.photo[-1].get_file()
+    photo_path = await photo_file.download_to_drive()
+
+    # Load image with OpenCV
+    img = cv2.imread(photo_path)
+
+    # Load pre-trained YOLOv5 model
+    model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
+    results = model(img)
+
+    # Render detections on image
+    detected_img = results.render()[0]  # results.render() returns list of images (one for each input image)
+
+    # Save to a temporary file
+    with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp_file:
+        temp_img_path = tmp_file.name
+        cv2.imwrite(temp_img_path, detected_img)
+
+    # Send the detected image back to the user
+    await update.message.reply_photo(photo=open(temp_img_path, 'rb'))
+    
 # Add handlers
 app.add_handler(CommandHandler("start", start))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, get_word_info))
+app.add_handler(MessageHandler(filters.PHOTO, handle_photo))  # Photo handler
 
-# Run the webhook for the bot
-app.run_webhook(
-    listen="0.0.0.0",
-    port=int(os.environ.get('PORT', 5001)),
-    url_path=telegram_bot_token,
-    webhook_url=f'https://dictionary-bot-pbld.onrender.com/{telegram_bot_token}'
-)
+# # Run the webhook for the bot
+# app.run_webhook(
+#     listen="0.0.0.0",
+#     port=int(os.environ.get('PORT', 5001)),
+#     url_path=telegram_bot_token,
+#     webhook_url=f'https://dictionary-bot-pbld.onrender.com/{telegram_bot_token}'
+# )
+
+# Start the bot
+app.run_polling()

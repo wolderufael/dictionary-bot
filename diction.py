@@ -19,7 +19,7 @@ def get_info(word):
 
     data = response.json()[0]
 
-    print(data)
+    print(f"The Word is : {data['word'] if len(data)!=0 else "Input a Word"}")
     return data
 
 
