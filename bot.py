@@ -146,7 +146,7 @@ async def get_word_info(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         meaning_counter += 1
 
     # Format the data into a string
-    message = f"Word: {word}\n\nOrigin: {origin}\n{meanings}"
+    message = f"Word: {word}\n{meanings}"
     await update.message.reply_text(message)
 
 # Add handlers
