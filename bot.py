@@ -119,7 +119,7 @@ async def get_word_info(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
     # Extract the word information
     word = word_info['word']
-    origin = word_info['origin']
+    # origin = word_info['origin']
     meanings = '\n'
     synonyms = ''
     definition = ''
