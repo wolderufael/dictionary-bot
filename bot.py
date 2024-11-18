@@ -10,11 +10,12 @@ import torch
 import cv2
 import numpy as np
 import os
+from ultralytics import YOLO
 
 
 # Load environment variables once
 load_dotenv('.env')
-telegram_bot_token = os.getenv('TOKEN2')
+telegram_bot_token = os.getenv('TOKEN3')
 
 ##########Clone repo and install dependecies###################
 import git
@@ -40,8 +41,11 @@ app = Application.builder().token(telegram_bot_token).build()
 # Introductory statement for the bot when the /start command is invoked
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(
-        "Hello there. Provide any English word and I will give you a bunch of information about it."
+        "Hello there. This is a fine-tuned YOLOv8 model for classifying Products in to four catagory i.e *Pharmaceutical*, *Cosmetic*, *Health Supplement* and *Nutritional*. Please Provide clear photo of product for better result!",parse_mode="Markdown"
     )
+    # await update.message.reply_text(
+    #     "Hello there. Provide any English word and I will give you a bunch of information about it."
+    # )
 
 # Obtain the information of the word provided and format before presenting.
 async def get_word_info(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -83,7 +87,8 @@ async def get_word_info(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
     # Format the data into a string
     message = f"Word: {word}\n{meanings}"
-    await update.message.reply_text(message)
+    # await update.message.reply_text(message)
+    await update.message.reply_text("Input only image!")
 
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     # Download the photo
@@ -93,29 +98,45 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     # Load image with OpenCV
     img = cv2.imread(photo_path)
 
-    # Load pre-trained YOLOv5 model
-    model_path = 'yolov5s.pt'
-    # model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
-    model = torch.hub.load('ultralytics/yolov5', 'custom', path=model_path)
-    results = model(img)
+    # # Load pre-trained YOLOv5 model
+    # model_path = 'yolov5s.pt'
+   
+    # model = torch.hub.load('ultralytics/yolov5', 'custom', path=model_path)
+    # results = model(img)
+    
 
-    # Render detections on image
-    detected_img = results.render()[0]  # results.render() returns list of images (one for each input image)
+    # # Render detections on image
+    # detected_img = results.render()[0]  # results.render() returns list of images (one for each input image)
 
-    # Save to a temporary file
-    with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp_file:
-        temp_img_path = tmp_file.name
-        cv2.imwrite(temp_img_path, detected_img)
+    # # Save to a temporary file
+    # with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp_file:
+    #     temp_img_path = tmp_file.name
+    #     cv2.imwrite(temp_img_path, detected_img)
 
-    # Send the detected image back to the user
-    await update.message.reply_photo(photo=open(temp_img_path, 'rb'))
+    # # Send the detected image back to the user
+    # await update.message.reply_photo(photo=open(temp_img_path, 'rb'))
+    model=YOLO("../models/last.pt")
+
+    results=model(img)
+    def get_category_name(results):
+        # Access the top1 index and names mapping
+        custom_names = ['Cosmetics', 'Nutritional Product', 'Pharmaceutical Product', 'Health Supplement']
+        results[0].names = {i: name for i, name in enumerate(custom_names)}
+        top1_index = results[0].probs.top1
+        names_mapping = results[0].names
+        # Get the category name
+        category_name = names_mapping[top1_index]
+        return category_name
+
+    category=get_category_name(results)
+    await update.message.reply_text(f"Category: {category}")
     
 # Add handlers
 app.add_handler(CommandHandler("start", start))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, get_word_info))
 app.add_handler(MessageHandler(filters.PHOTO, handle_photo))  # Photo handler
 
-# # Run the webhook for the bot
+# Run the webhook for the bot
 app.run_webhook(
     listen="0.0.0.0",
     port=int(os.environ.get('PORT', 5001)),
@@ -123,5 +144,5 @@ app.run_webhook(
     webhook_url=f'https://dictionary-bot-pbld.onrender.com/{telegram_bot_token}'
 )
 
-# # Start the bot
+# # # Start the bot
 # app.run_polling()

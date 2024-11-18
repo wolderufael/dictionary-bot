@@ -24,7 +24,7 @@ def get_info(word):
     return data
 
 
-get_info("food")
+# get_info("food")
 
 
 if __name__ == "__main__":
