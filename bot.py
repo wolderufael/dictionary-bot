@@ -115,7 +115,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
     # # Send the detected image back to the user
     # await update.message.reply_photo(photo=open(temp_img_path, 'rb'))
-    model=YOLO("../models/last.pt")
+    model=YOLO("models/last.pt")
 
     results=model(img)
     def get_category_name(results):
